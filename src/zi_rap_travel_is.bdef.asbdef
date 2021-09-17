@@ -1,0 +1,109 @@
+managed;
+with draft; //to enable draft handling
+
+define behavior for ZI_RAP_TRAVEL_IS alias Travel //to easily access the entity via ABAP code we defined an alias
+implementation in class zbp_i_rap_travel_is unique //to provide the behavior implementation for each entity in a separate ABAP class
+persistent table zrap_atrav_is // allows the manage runtime to perform create, update and delete operations directly on our database table
+draft table zrap_dtrav_is //Whenever you change the BO data model, you can again use the ADT Quick Fix (Ctrl+1) to generate again the draft table definition. This will update the table definition.
+lock master total etag LastChangedAt //to identify changes to active instances in cases where the durable lock has expired
+authorization master ( instance ) //to declare the travel root node as authorization master
+etag master LocalLastChangedAt //to make use of the so-called optimistic locking
+{
+  create;
+  update;
+  delete;
+  association _Booking { create; with draft; } //new booking entities can be created bu association from a travel entity, we also indicate that the associations are implicitly draft enabled
+
+
+  field ( numbering : managed, readonly ) TravelUUID; //to automatically generate and assign a key when new instances are created.
+  //Static Field Controls
+  field ( readonly ) TravelID, TotalPrice, TravelStatus; //to set fields to read only
+  field ( readonly ) LastChangedAt, LastChangedBy, CreatedAt, CreatedBy, LocalLastChangedAt;
+  field ( mandatory ) AgencyID, CustomerID; //to set fields as to mandatory => this will show the little red star symbol in the Fiori Elements UI but the implementation of a corresponding validation is still required.
+
+  //Dynamic Feature Control
+  action ( features : instance ) acceptTravel result [1] $self; //=> returns  $self with cardinality 1 as the result, $self means that the instance of the same type is returned on which the operation is performed.
+  action ( features : instance ) rejectTravel result [1] $self;
+  internal action recalcTotalPrice; //to re-calculate the total price
+
+
+  determination setInitialStatus on modify { create; }  //to default the status to N whenever a new instance is created. It uses the create trigger on Modify
+  determination calculateTotalPrice on modify { field BookingFee, CurrencyCode; }  //to update the total price whenever the BookingFee or CurrencyCode is changed
+  determination calculateTravelID on save { create; } //to determine the Travel ID when a new instance is created. It is executed on save.
+
+
+  validation validateAgency on save { field AgencyID; create; }
+  validation validateCustomer on save { field CustomerID; create; }
+  validation validateDates on save { field BeginDate, EndDate; create; }
+
+  //When a draft instance is going to be activated, the SAP Fiori elements UI calls the draft determine action prepare in the backend.
+  //This call takes place in a separate OData changeset to allow for saving the state messages even in case the activation fails due to failing validations
+  //In order to execute the validations during prepare, you need to assign them to the draft determine action prepare trigger.
+  draft determine action Prepare
+  {
+    validation validateAgency;
+    validation validateCustomer;
+    validation validateDates;
+  }
+
+  mapping for zrap_atrav_is // we need to tell the framework how to map the element names in the CDS data model to the corresponding table fields
+  {
+    TravelUUID = travel_uuid;
+    TravelID = travel_id;
+    AgencyID = agency_id;
+    CustomerID = customer_id;
+    BeginDate = begin_date;
+    EndDate = end_date;
+    BookingFee = booking_fee;
+    TotalPrice = total_price;
+    CurrencyCode = currency_code;
+    Description = description;
+    TravelStatus = overall_status;
+    CreatedBy = created_by;
+    CreatedAt = created_at;
+    LastChangedBy = last_changed_by;
+    LastChangedAt = last_changed_at;
+    LocalLastChangedAt = local_last_changed_at;
+  }
+}
+
+define behavior for ZI_RAP_BOOKING_IS alias Booking
+implementation in class zbp_i_rap_booking_is unique
+persistent table zrap_abook_is
+draft table zrap_dbook_is
+lock dependent by _Travel //The booking child node becomes a lock dependent and makes use of the association defined on the CDS view
+authorization dependent by _Travel //to declare the booking entity as authorization dependent. Modifying requests on the booking entity are directed to the authorization master following the provided association.
+etag master LocalLastChangedAt
+{
+  update;
+  delete;
+  field ( readonly ) TravelUUID; //TravelUUID should be set to read only as it is used in the on-condition of the association
+  association _Travel { with draft; } //in order to transactional enable the travel association expilicitly listed in the booking entity
+
+  field ( numbering : managed, readonly ) BookingUUID;
+  //Static Field Controls
+  field ( readonly ) BookingID;
+  field ( readonly ) CreatedBy, LastChangedBy, LocalLastChangedAt;
+
+
+  determination calculateBookingID on modify { create; }
+  determination calculateTotalPrice on modify { field FlightPrice, CurrencyCode; } //to update the TotalPrice whenever the FlightPrice or CurrencyCode is changed.
+
+  mapping for zrap_abook_is
+  {
+    BookingUUID = booking_uuid;
+    TravelUUID = travel_uuid;
+    BookingID = booking_id;
+    BookingDate = booking_date;
+    CustomerID = customer_id;
+    CarrierID = carrier_id;
+    ConnectionID = connection_id;
+    FlightDate = flight_date;
+    FlightPrice = flight_price;
+    CurrencyCode = currency_code;
+    CreatedBy = created_by;
+    LastChangedBy = last_changed_by;
+    LocalLastChangedAt = local_last_changed_at;
+  }
+
+}

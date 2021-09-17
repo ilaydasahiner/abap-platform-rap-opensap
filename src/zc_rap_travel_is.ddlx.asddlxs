@@ -1,0 +1,89 @@
+@Metadata.layer: #CORE //the layer determines the priority of the metadata
+//#CORE is the lowest and CUSTOMER the highest priority
+@UI: {
+  headerInfo: { typeName: 'Travel',
+                typeNamePlural: 'Travels',
+                title: { type: #STANDARD, label: 'Travel', value: 'TravelID' } },
+  presentationVariant: [{ sortOrder: [{ by: 'TravelID', direction:  #DESC }] }] }
+annotate view ZC_RAP_TRAVEL_IS with
+{
+
+  @UI.facet: [ { id:              'Travel',
+                 purpose:         #STANDARD,
+                 type:            #IDENTIFICATION_REFERENCE,
+                 label:           'Travel',
+                 position:        10 },
+               { id:              'Booking',
+                 purpose:         #STANDARD,
+                 type:            #LINEITEM_REFERENCE,
+                 label:           'Booking',
+                 position:        20,
+                 targetElement:   '_Booking'} ] //to define the navigation to the object page and its layout
+
+  @UI : { identification: [{ position: 1, label: 'Travel UUID' }] } //TravelUUID will only be displayed in the identification section of the object page
+  TravelUUID;
+
+  @UI : { lineItem: [{position : 10 } ],  //to specify the layout information of each element shown as a column in the list
+          identification: [{ position : 10 }], //to specify the layout information of each element shown in the identification section of the object page
+          selectionField: [{ position : 10 }] } //to enable an element for selection in filter bar. If a value help is defined for the given element then it is automatically exposed to the UI
+  TravelID;
+
+  @UI : { lineItem: [{position : 20 } ],
+          identification: [{ position : 20 }],
+          selectionField: [{ position : 20 }] }
+  AgencyID;
+
+  @UI : { lineItem: [{position : 30 } ],
+          identification: [{ position : 30 }],
+          selectionField: [{ position : 30 }] }
+  CustomerID;
+
+
+  @UI : { lineItem: [{position : 40 } ],
+          identification: [{ position : 40 }] }
+  BeginDate;
+
+  @UI : { lineItem: [{position : 50 } ],
+          identification: [{ position : 50 }] }
+  EndDate;
+
+  @UI : { lineItem: [{position : 60 } ],
+          identification: [{ position : 60 }] }
+  BookingFee;
+
+  @UI : { lineItem: [{position : 70 } ],
+          identification: [{ position : 70 }] }
+  TotalPrice;
+
+  @UI : { lineItem: [{position : 80 } ],
+          identification: [{ position : 80 }] }
+  Description;
+
+  //  @UI : { lineItem: [{position : 90 } ],
+  //          identification: [{ position : 90 }] }
+  @UI: {  lineItem:       [ { position: 90 },
+                              { type: #FOR_ACTION, dataAction: 'acceptTravel', label: 'Accept Travel' },
+                              { type: #FOR_ACTION, dataAction: 'rejectTravel', label: 'Reject Travel' }
+                            ],
+          identification: [ { position: 90 },
+                              { type: #FOR_ACTION, dataAction: 'acceptTravel', label: 'Accept Travel' },
+                              { type: #FOR_ACTION, dataAction: 'rejectTravel', label: 'Reject Travel' }
+                            ] }
+  TravelStatus;
+
+  @UI.hidden: true //to prevent element from being displayed on the UI or the personalization settings dialog
+  CreatedBy;
+
+  @UI.hidden: true
+  CreatedAt;
+
+  @UI.hidden: true
+  LastChangedBy;
+
+  @UI.hidden: true
+  LastChangedAt;
+
+  @UI.hidden: true
+  LocalLastChangedAt;
+
+}
