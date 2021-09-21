@@ -5,17 +5,24 @@
 define root view entity ZC_RAP_TRAVEL_IS
   as projection on ZI_RAP_TRAVEL_IS as Travel
 {
+
+      //NOT: Custom entities must not be part of a projection view! Therefore;
+      //1.comment out the field AgencyName since it uses the association _Agency which is not allowed
+      //2.comment out the annotation @ObjectModel.text.element: ['AgencyName'] which uses the field AgencyName
+      //3.replace the annotation for the value help AgencyID so that the value help uses the newly created custom entity instead of the CDS view /DMO/I_Agency
+
   key TravelUUID,
       @Search.defaultSearchElement: true //to enable the freestyle search for the view column
       TravelID,
-      @Consumption.valueHelpDefinition: [{ entity : {name : '/DMO/I_Agency', element : 'AgencyID' } }] //to define value helps for the view element AgencyID
-      @ObjectModel.text.element: ['AgencyName'] //to specify AgencyName as textual descriptions for the element AgencyID
+      //@Consumption.valueHelpDefinition: [{ entity : {name : '/DMO/I_Agency', element : 'AgencyID' } }] //to define value helps for the view element AgencyID
+      @Consumption.valueHelpDefinition: [{ entity : {name : 'ZCE_RAP_AGENCY_IS', element : 'AgencyId' } }] //to define value helps for the view element AgencyID
+      //@ObjectModel.text.element: ['AgencyName'] //to specify AgencyName as textual descriptions for the element AgencyID
       @Search.defaultSearchElement: true
       AgencyID,
-      _Agency.Name       as AgencyName, //the projection list has been enhanced with the element AgencyName from the Association _Agency
+      //_Agency.Name       as AgencyName, //the projection list has been enhanced with the element AgencyName from the Association _Agency
       @Consumption.valueHelpDefinition: [{ entity : {name : '/DMO/I_Customer', element : 'CustomerID' } }]
       @ObjectModel.text.element: ['CustomerName']
-      @Search.defaultSearchElement: true 
+      @Search.defaultSearchElement: true
       CustomerID,
       _Customer.LastName as CustomerName,
       BeginDate,
@@ -33,7 +40,7 @@ define root view entity ZC_RAP_TRAVEL_IS
       LastChangedBy,
       LastChangedAt,
       LocalLastChangedAt,
-      
+
       /* Associations */
       _Agency,
       _Booking : redirected to composition child ZC_RAP_BOOKING_IS,

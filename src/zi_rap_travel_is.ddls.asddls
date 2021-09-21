@@ -5,7 +5,8 @@ define root view entity ZI_RAP_TRAVEL_IS
 
   composition [0..*] of ZI_RAP_BOOKING_IS as _Booking
 
-  association [0..1] to /DMO/I_Agency     as _Agency   on $projection.AgencyID = _Agency.AgencyID
+  //association [0..1] to /DMO/I_Agency     as _Agency   on $projection.AgencyID = _Agency.AgencyID
+  association [0..1] to ZCE_RAP_AGENCY_IS as _Agency   on $projection.AgencyID = _Agency.AgencyId //now we use newly created custom entity
   association [0..1] to /DMO/I_Customer   as _Customer on $projection.CustomerID = _Customer.CustomerID
   association [0..1] to I_Currency        as _Currency on $projection.CurrencyCode = _Currency.Currency
 {

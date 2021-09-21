@@ -7,7 +7,13 @@ persistent table zrap_atrav_is // allows the manage runtime to perform create, u
 draft table zrap_dtrav_is //Whenever you change the BO data model, you can again use the ADT Quick Fix (Ctrl+1) to generate again the draft table definition. This will update the table definition.
 lock master total etag LastChangedAt //to identify changes to active instances in cases where the durable lock has expired
 authorization master ( instance ) //to declare the travel root node as authorization master
-etag master LocalLastChangedAt //to make use of the so-called optimistic locking
+etag master LocalLastChangedAt //to make use of the so-called optimistic locking=>
+
+//etag => is used for locking the resources in SAP OData service calls
+//Optimistic locking => is the locking mechanism used in stateless calls.
+//Client application will not actual lock the data but check the data before updating it to make sure that update is happened on latest version.
+
+
 {
   create;
   update;
